@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.github.sangalaa.facerecognitionapp"
-        minSdkVersion 21
+        minSdkVersion 15
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -26,5 +26,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'com.github.google:cameraview:3eaeac09a7'
+    implementation 'com.wonderkiln:camerakit:0.13.1'
 }

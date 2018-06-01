@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
+    <com.wonderkiln.camerakit.CameraView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        app:ckCropOutput="false"
+        app:ckDoubleTapToToggleFacing="true"
+        app:ckFacing="front"
+        app:ckFlash="off"
+        app:ckFocus="tapWithMarker"
+        app:ckJpegQuality="100"
+        app:ckMethod="still"
+        app:ckPinchToZoom="true"
+        app:ckVideoQuality="highest"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/take_picture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_alignBottom="@+id/camera_view"
+        android:layout_centerHorizontal="true"
+        android:text="Take picture" />
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>
