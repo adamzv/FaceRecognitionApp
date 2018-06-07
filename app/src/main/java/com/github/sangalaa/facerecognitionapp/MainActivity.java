@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
     private CameraView cameraView;
     private ImageView imageView;
+    private FloatingActionButton takePictureButton;
+    private FloatingActionButton backButton;
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
@@ -33,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
             switch (v.getId()) {
                 case R.id.take_picture:
                     cameraView.captureImage();
+                    break;
+                case R.id.back_button:
+                    restartCamera();
                     break;
             }
         }
@@ -44,9 +49,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         setUpCameraView();
-        FloatingActionButton button = (FloatingActionButton) findViewById(R.id.take_picture);
-        if (button != null) {
-            button.setOnClickListener(onClickListener);
+
+        takePictureButton = findViewById(R.id.take_picture);
+        if (takePictureButton != null) {
+            takePictureButton.setOnClickListener(onClickListener);
+        }
+
+        backButton = findViewById(R.id.back_button);
+        if (backButton != null) {
+            backButton.setOnClickListener(onClickListener);
         }
 
         imageView = (ImageView) findViewById(R.id.image);
@@ -89,10 +100,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "onImage", Toast.LENGTH_LONG).show();
                 Bitmap result = cameraKitImage.getBitmap();
 
-                cameraView.setVisibility(View.INVISIBLE);
-                imageView.setVisibility(View.VISIBLE);
-                imageView.setImageBitmap(result);
-                cameraView.stop();
+                displayImage(result);
+
             }
 
             @Override
@@ -102,4 +111,25 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void displayImage(Bitmap bitmap) {
+        cameraView.setVisibility(View.INVISIBLE);
+        cameraView.stop();
+
+        imageView.setVisibility(View.VISIBLE);
+        imageView.setImageBitmap(bitmap);
+
+        takePictureButton.setVisibility(View.INVISIBLE);
+        backButton.setVisibility(View.VISIBLE);
+    }
+
+    private void restartCamera() {
+        imageView.setVisibility(View.INVISIBLE);
+        imageView.setImageBitmap(null);
+
+        cameraView.setVisibility(View.VISIBLE);
+        cameraView.start();
+
+        takePictureButton.setVisibility(View.VISIBLE);
+        backButton.setVisibility(View.INVISIBLE);
+    }
 }
