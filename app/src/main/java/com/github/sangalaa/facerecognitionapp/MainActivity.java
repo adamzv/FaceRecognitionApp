@@ -1,10 +1,15 @@
 package com.github.sangalaa.facerecognitionapp;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.wonderkiln.camerakit.CameraKit;
 import com.wonderkiln.camerakit.CameraKitError;
@@ -20,13 +25,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private CameraView cameraView;
+    private ImageView imageView;
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.take_picture:
-
+                    cameraView.captureImage();
                     break;
             }
         }
@@ -38,14 +44,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         setUpCameraView();
-        Button button = (Button) findViewById(R.id.take_picture);
+        FloatingActionButton button = (FloatingActionButton) findViewById(R.id.take_picture);
         if (button != null) {
             button.setOnClickListener(onClickListener);
         }
 
-        cameraView.setMethod(CameraKit.Constants.METHOD_STILL);
-        cameraView.setCropOutput(false);
-        cameraView.setPinchToZoom(false);
+        imageView = (ImageView) findViewById(R.id.image);
+
+        cameraView.setMethod(CameraKit.Constants.METHOD_STANDARD);
         cameraView.setZoom(0);
 
     }
@@ -80,6 +86,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onImage(CameraKitImage cameraKitImage) {
                 Log.d(TAG, "onImage");
+                Toast.makeText(MainActivity.this, "onImage", Toast.LENGTH_LONG).show();
+                Bitmap result = cameraKitImage.getBitmap();
+
+                cameraView.setVisibility(View.INVISIBLE);
+                imageView.setVisibility(View.VISIBLE);
+                imageView.setImageBitmap(result);
+                cameraView.stop();
             }
 
             @Override
@@ -88,4 +101,5 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 }

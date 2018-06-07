@@ -11,22 +11,31 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
+        android:layout_alignBottom="@+id/image"
         app:ckCropOutput="false"
         app:ckDoubleTapToToggleFacing="true"
         app:ckFacing="front"
         app:ckFlash="off"
         app:ckFocus="tapWithMarker"
         app:ckJpegQuality="100"
-        app:ckMethod="still"
         app:ckPinchToZoom="true"
         app:ckVideoQuality="highest"/>
 
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="0dp"
+        android:visibility="invisible"/>
+
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/take_picture"
+        android:src="@drawable/baseline_camera_alt_black_18dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/camera_view"
         android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
         android:text="Take picture" />
 
 </RelativeLayout>
