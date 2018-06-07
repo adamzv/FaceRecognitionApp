@@ -16,8 +16,9 @@
         app:ckDoubleTapToToggleFacing="true"
         app:ckFacing="front"
         app:ckFlash="off"
-        app:ckFocus="tapWithMarker"
+        app:ckFocus="off"
         app:ckJpegQuality="100"
+        app:ckMethod="standard"
         app:ckPinchToZoom="true"
         app:ckVideoQuality="highest"/>
 
@@ -34,6 +35,7 @@
         android:layout_alignBottom="@+id/camera_view"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
+        app:rippleColor="@color/colorAccentDark"
         android:src="@drawable/ic_baseline_camera_alt_24px" />
 
     <android.support.design.widget.FloatingActionButton
@@ -43,6 +45,7 @@
         android:layout_alignBottom="@id/camera_view"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
+        app:rippleColor="@color/colorAccentDark"
         android:src="@drawable/ic_arrow_back_black_24dp"
-        android:visibility="invisible"/>
+        android:visibility="invisible" />
 </RelativeLayout>
