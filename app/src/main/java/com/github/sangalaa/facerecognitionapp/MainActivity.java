@@ -2,6 +2,7 @@ package com.github.sangalaa.facerecognitionapp;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
@@ -217,17 +218,32 @@ public class MainActivity extends AppCompatActivity {
 
                     Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
                     paint.setColor(getResources().getColor(R.color.colorAccent));
-                    paint.setStyle(Paint.Style.STROKE);
-                    paint.setStrokeWidth(8);
 
                     canvas.drawBitmap(bitmap, 0, 0, paint);
 
                     for (FaceData faceData : faceDataList) {
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setStrokeWidth(8);
+
                         float height = (float) faceData.getHeight();
                         float width = (float) faceData.getWidth();
                         float left = (float) faceData.getLeft();
                         float top = (float) faceData.getTop();
-                        canvas.drawRect(left, top, left+width, top+height, paint);
+                        float right = left + width;
+                        float bottom = top + height;
+                        String gender = faceData.getGender();
+                        long minAge = faceData.getMinAge();
+
+                        canvas.drawRect(left, top, right, bottom, paint);
+
+                        paint.setStyle(Paint.Style.FILL);
+                        canvas.drawRect(left-4, top-70, right+4, top, paint);
+
+                        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                        textPaint.setColor(Color.BLACK);
+                        textPaint.setTextSize(60F);
+                        canvas.drawText(gender, left+4, top-11, textPaint);
+                        canvas.drawText(String.valueOf(minAge), right-72, top-11, textPaint);
                         imageView.setImageBitmap(drawBitmap);
                     }
                 }
