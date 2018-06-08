@@ -13,13 +13,13 @@
         android:layout_alignBottom="@+id/image"
         android:adjustViewBounds="true"
         app:ckCropOutput="false"
-        app:ckDoubleTapToToggleFacing="true"
+        app:ckDoubleTapToToggleFacing="false"
         app:ckFacing="front"
         app:ckFlash="off"
         app:ckFocus="off"
         app:ckJpegQuality="100"
         app:ckMethod="standard"
-        app:ckPinchToZoom="true"
+        app:ckPinchToZoom="false"
         app:ckVideoQuality="highest"/>
 
     <ImageView

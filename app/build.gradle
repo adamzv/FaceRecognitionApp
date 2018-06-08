@@ -29,6 +29,5 @@ dependencies {
 
     implementation 'com.wonderkiln:camerakit:0.13.1'
 
-    implementation 'com.ibm.watson.developer_cloud:android-sdk:0.4.3'
     implementation 'com.ibm.watson.developer_cloud:java-sdk:6.0.0'
 }

@@ -1,21 +1,26 @@
 package com.github.sangalaa.facerecognitionapp;
 
-import android.content.Loader;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
-import com.ibm.watson.developer_cloud.http.ServiceCallback;
+import com.ibm.watson.developer_cloud.service.exception.ForbiddenException;
+import com.ibm.watson.developer_cloud.service.exception.NotFoundException;
+import com.ibm.watson.developer_cloud.service.exception.RequestTooLargeException;
 import com.ibm.watson.developer_cloud.service.security.IamOptions;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.VisualRecognition;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.DetectFacesOptions;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.DetectedFaces;
+import com.ibm.watson.developer_cloud.visual_recognition.v3.model.Face;
+import com.ibm.watson.developer_cloud.visual_recognition.v3.model.FaceAge;
+import com.ibm.watson.developer_cloud.visual_recognition.v3.model.FaceGender;
+import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ImageWithFaces;
 import com.wonderkiln.camerakit.CameraKitError;
 import com.wonderkiln.camerakit.CameraKitEvent;
 import com.wonderkiln.camerakit.CameraKitEventListener;
@@ -26,6 +31,7 @@ import com.wonderkiln.camerakit.CameraView;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     private VisualRecognition visualRecognition;
     private DetectFacesOptions detectFacesOptions;
+    private DetectedFaces detectedFaces;
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
@@ -124,6 +131,30 @@ public class MainActivity extends AppCompatActivity {
                 ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(resultByteArray);
 
                 new DetectFacesTask().execute(byteArrayInputStream);
+
+                if (detectedFaces != null) {
+                    Log.d(TAG, "Detected faces");
+                    Log.d(TAG, detectedFaces.toString());
+                    List<ImageWithFaces> images = detectedFaces.getImages();
+                    for (ImageWithFaces image : images) {
+                        List<Face> faces = image.getFaces();
+                        for (Face face : faces) {
+                            // FaceLocation
+
+                            // FaceAge
+                            FaceAge faceAge = face.getAge();
+                            long minAge = faceAge.getMin();
+                            long maxAge = faceAge.getMax();
+                            // FaceGender
+                            FaceGender faceGender = face.getGender();
+                            String gender = faceGender.getGender();
+
+                            Log.d(TAG, gender + " " + minAge);
+                        }
+                    }
+                } else {
+                    Log.d(TAG, "0 faces detected");
+                }
             }
 
             @Override
@@ -160,12 +191,24 @@ public class MainActivity extends AppCompatActivity {
         protected DetectedFaces doInBackground(InputStream... inputStreams) {
             detectFacesOptions = new DetectFacesOptions.Builder().imagesFile(inputStreams[0]).build();
 
-            return visualRecognition.detectFaces(detectFacesOptions).execute();
+            DetectedFaces detectFaces = null;
+
+            try {
+                detectFaces = visualRecognition.detectFaces(detectFacesOptions).execute();
+            } catch (ForbiddenException e) {
+                Log.d(TAG, "Invalid API key");
+            } catch (RequestTooLargeException e) {
+                Log.d(TAG, e.getStatusCode() + ": " + e.getMessage());
+            } catch (NotFoundException e) {
+                Log.d(TAG, e.getStatusCode() + ": " + e.getMessage());
+            }
+
+            return detectFaces;
         }
 
         @Override
-        protected void onPostExecute(DetectedFaces detectedFaces) {
-            Log.d("IBM", detectedFaces.toString());
+        protected void onPostExecute(DetectedFaces faces) {
+            detectedFaces = faces;
         }
     }
 
