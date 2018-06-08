@@ -1,6 +1,7 @@
 package com.github.sangalaa.facerecognitionapp;
 
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -8,7 +9,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.ibm.watson.developer_cloud.service.exception.ForbiddenException;
 import com.ibm.watson.developer_cloud.service.exception.NotFoundException;
@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         imageView = (ImageView) findViewById(R.id.image);
-        imageView.setVisibility(View.VISIBLE);
 
         /*
          * Create credentials.xml resource file to store
@@ -132,29 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
                 new DetectFacesTask().execute(byteArrayInputStream);
 
-                if (detectedFaces != null) {
-                    Log.d(TAG, "Detected faces");
-                    Log.d(TAG, detectedFaces.toString());
-                    List<ImageWithFaces> images = detectedFaces.getImages();
-                    for (ImageWithFaces image : images) {
-                        List<Face> faces = image.getFaces();
-                        for (Face face : faces) {
-                            // FaceLocation
 
-                            // FaceAge
-                            FaceAge faceAge = face.getAge();
-                            long minAge = faceAge.getMin();
-                            long maxAge = faceAge.getMax();
-                            // FaceGender
-                            FaceGender faceGender = face.getGender();
-                            String gender = faceGender.getGender();
-
-                            Log.d(TAG, gender + " " + minAge);
-                        }
-                    }
-                } else {
-                    Log.d(TAG, "0 faces detected");
-                }
             }
 
             @Override
@@ -185,6 +162,25 @@ public class MainActivity extends AppCompatActivity {
         backButton.setVisibility(View.INVISIBLE);
     }
 
+    private void extractDataFromImages(List<ImageWithFaces> images) {
+        for (ImageWithFaces image : images) {
+            List<Face> faces = image.getFaces();
+            for (Face face : faces) {
+                // FaceLocation
+
+                // FaceAge
+                FaceAge faceAge = face.getAge();
+                long minAge = faceAge.getMin();
+                long maxAge = faceAge.getMax();
+                // FaceGender
+                FaceGender faceGender = face.getGender();
+                String gender = faceGender.getGender();
+
+                Log.d(TAG, gender + " " + minAge);
+            }
+        }
+    }
+
     private class DetectFacesTask extends AsyncTask<InputStream, Void, DetectedFaces> {
 
         @Override
@@ -207,8 +203,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(DetectedFaces faces) {
-            detectedFaces = faces;
+        protected void onPostExecute(DetectedFaces detectfaces) {
+            detectedFaces = detectfaces;
+
+            if (detectedFaces != null) {
+                Log.d(TAG, "Detected faces");
+                Log.d(TAG, detectedFaces.toString());
+                List<ImageWithFaces> images = detectedFaces.getImages();
+                extractDataFromImages(images);
+            } else {
+                Log.d(TAG, "0 faces detected");
+            }
         }
     }
 
