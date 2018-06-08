@@ -1,7 +1,8 @@
 package com.github.sangalaa.facerecognitionapp;
 
 import android.graphics.Bitmap;
-import android.media.Image;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,7 @@ import com.ibm.watson.developer_cloud.visual_recognition.v3.model.DetectedFaces;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.Face;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.FaceAge;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.FaceGender;
+import com.ibm.watson.developer_cloud.visual_recognition.v3.model.FaceLocation;
 import com.ibm.watson.developer_cloud.visual_recognition.v3.model.ImageWithFaces;
 import com.wonderkiln.camerakit.CameraKitError;
 import com.wonderkiln.camerakit.CameraKitEvent;
@@ -30,7 +32,7 @@ import com.wonderkiln.camerakit.CameraView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,12 +40,20 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private CameraView cameraView;
+
     private ImageView imageView;
+
     private FloatingActionButton takePictureButton;
+
     private FloatingActionButton backButton;
 
+    private Bitmap bitmap;
+
+
     private VisualRecognition visualRecognition;
+
     private DetectFacesOptions detectFacesOptions;
+
     private DetectedFaces detectedFaces;
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -124,14 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
                 displayImage(result);
 
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                result.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
-                byte[] resultByteArray = byteArrayOutputStream.toByteArray();
-                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(resultByteArray);
-
-                new DetectFacesTask().execute(byteArrayInputStream);
-
-
+                new DetectFacesTask().execute(result);
             }
 
             @Override
@@ -162,30 +165,25 @@ public class MainActivity extends AppCompatActivity {
         backButton.setVisibility(View.INVISIBLE);
     }
 
-    private void extractDataFromImages(List<ImageWithFaces> images) {
-        for (ImageWithFaces image : images) {
-            List<Face> faces = image.getFaces();
-            for (Face face : faces) {
-                // FaceLocation
+    private ByteArrayInputStream createInputStreamFromBitmap(Bitmap bitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
+        byte[] resultByteArray = byteArrayOutputStream.toByteArray();
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(resultByteArray);
 
-                // FaceAge
-                FaceAge faceAge = face.getAge();
-                long minAge = faceAge.getMin();
-                long maxAge = faceAge.getMax();
-                // FaceGender
-                FaceGender faceGender = face.getGender();
-                String gender = faceGender.getGender();
-
-                Log.d(TAG, gender + " " + minAge);
-            }
-        }
+        return byteArrayInputStream;
     }
 
-    private class DetectFacesTask extends AsyncTask<InputStream, Void, DetectedFaces> {
+    private class DetectFacesTask extends AsyncTask<Bitmap, Void, DetectedFaces> {
+
+        Bitmap bitmap;
 
         @Override
-        protected DetectedFaces doInBackground(InputStream... inputStreams) {
-            detectFacesOptions = new DetectFacesOptions.Builder().imagesFile(inputStreams[0]).build();
+        protected DetectedFaces doInBackground(Bitmap... bitmaps) {
+            bitmap = bitmaps[0];
+            ByteArrayInputStream byteArrayInputStream = createInputStreamFromBitmap(bitmaps[0]);
+
+            detectFacesOptions = new DetectFacesOptions.Builder().imagesFile(byteArrayInputStream).build();
 
             DetectedFaces detectFaces = null;
 
@@ -210,10 +208,60 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Detected faces");
                 Log.d(TAG, detectedFaces.toString());
                 List<ImageWithFaces> images = detectedFaces.getImages();
-                extractDataFromImages(images);
+
+                List<FaceData> faceDataList = extractFaceDataFromImages(images);
+
+                if (bitmap != null) {
+                    Bitmap drawBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
+                    Canvas canvas = new Canvas(drawBitmap);
+
+                    Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    paint.setColor(getResources().getColor(R.color.colorAccent));
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setStrokeWidth(8);
+
+                    canvas.drawBitmap(bitmap, 0, 0, paint);
+
+                    for (FaceData faceData : faceDataList) {
+                        float height = (float) faceData.getHeight();
+                        float width = (float) faceData.getWidth();
+                        float left = (float) faceData.getLeft();
+                        float top = (float) faceData.getTop();
+                        canvas.drawRect(left, top, left+width, top+height, paint);
+                        imageView.setImageBitmap(drawBitmap);
+                    }
+                }
             } else {
                 Log.d(TAG, "0 faces detected");
             }
+        }
+
+        private List<FaceData> extractFaceDataFromImages(List<ImageWithFaces> images) {
+            List<FaceData> faceDataList = new ArrayList<>();
+            for (ImageWithFaces image : images) {
+                List<Face> faces = image.getFaces();
+                for (Face face : faces) {
+                    // FaceLocation
+                    FaceLocation faceLocation = face.getFaceLocation();
+                    double height = faceLocation.getHeight();
+                    double width = faceLocation.getWidth();
+                    double left = faceLocation.getLeft();
+                    double top = faceLocation.getTop();
+
+                    // FaceAge
+                    FaceAge faceAge = face.getAge();
+                    long minAge = faceAge.getMin();
+                    long maxAge = faceAge.getMax();
+
+                    // FaceGender
+                    FaceGender faceGender = face.getGender();
+                    String gender = faceGender.getGender();
+
+                    faceDataList.add(new FaceData(height, width, left, top, gender, minAge, maxAge));
+                    Log.d(TAG, faceDataList.get(faceDataList.size()-1).toString());
+                }
+            }
+            return faceDataList;
         }
     }
 
