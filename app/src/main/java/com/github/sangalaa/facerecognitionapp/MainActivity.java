@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setUpCameraView() {
-        cameraView = (CameraView) findViewById(R.id.camera_view);
+        cameraView = findViewById(R.id.camera_view);
         cameraView.addCameraKitListener(new CameraKitEventListener() {
             @Override
             public void onEvent(CameraKitEvent cameraKitEvent) {
