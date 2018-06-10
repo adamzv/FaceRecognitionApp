@@ -144,6 +144,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Replaces a CameraView with an ImageView, then display a bitmap in the ImageView.
+     * @param bitmap is the bitmap which will be displayed in the ImageView.
+     */
     private void displayImage(Bitmap bitmap) {
         cameraView.setVisibility(View.INVISIBLE);
         cameraView.stop();
@@ -155,6 +159,9 @@ public class MainActivity extends AppCompatActivity {
         backButton.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Starts the camera and replaces an ImageView with a CameraView.
+     */
     private void restartCamera() {
         imageView.setVisibility(View.INVISIBLE);
         imageView.setImageBitmap(null);
@@ -166,29 +173,25 @@ public class MainActivity extends AppCompatActivity {
         backButton.setVisibility(View.INVISIBLE);
     }
 
-    private ByteArrayInputStream createInputStreamFromBitmap(Bitmap bitmap) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
-        byte[] resultByteArray = byteArrayOutputStream.toByteArray();
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(resultByteArray);
-
-        return byteArrayInputStream;
-    }
-
     private class DetectFacesTask extends AsyncTask<Bitmap, Void, DetectedFaces> {
 
-        Bitmap bitmap;
+        /** A bitmap, which will be used to create a request */
+        private Bitmap bitmap;
 
         @Override
         protected DetectedFaces doInBackground(Bitmap... bitmaps) {
             bitmap = bitmaps[0];
             ByteArrayInputStream byteArrayInputStream = createInputStreamFromBitmap(bitmaps[0]);
 
-            detectFacesOptions = new DetectFacesOptions.Builder().imagesFile(byteArrayInputStream).build();
+            // Creates a DetectFacesOption object containing
+            // the parameter values for the detectFaces method.
+            detectFacesOptions = new DetectFacesOptions.Builder().
+                    imagesFile(byteArrayInputStream).build();
 
             DetectedFaces detectFaces = null;
 
             try {
+                // Synchronous execution of the detectFaces() method
                 detectFaces = visualRecognition.detectFaces(detectFacesOptions).execute();
             } catch (ForbiddenException e) {
                 Log.d(TAG, "Invalid API key");
@@ -205,25 +208,29 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(DetectedFaces detectfaces) {
             detectedFaces = detectfaces;
 
+            // If there is at least one face in the picture.
             if (detectedFaces != null) {
                 Log.d(TAG, "Detected faces");
                 Log.d(TAG, detectedFaces.toString());
+                // The images List will contain only one image
                 List<ImageWithFaces> images = detectedFaces.getImages();
 
+                // Extracts relevant date from the
                 List<FaceData> faceDataList = extractFaceDataFromImages(images);
 
                 if (bitmap != null) {
                     Bitmap drawBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
                     Canvas canvas = new Canvas(drawBitmap);
 
-                    Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                    paint.setColor(getResources().getColor(R.color.colorAccent));
+                    // Creates a Paint object, which will be used to draw rectangles.
+                    Paint rectPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    rectPaint.setColor(getResources().getColor(R.color.colorAccent));
 
-                    canvas.drawBitmap(bitmap, 0, 0, paint);
+                    canvas.drawBitmap(bitmap, 0, 0, rectPaint);
 
                     for (FaceData faceData : faceDataList) {
-                        paint.setStyle(Paint.Style.STROKE);
-                        paint.setStrokeWidth(8);
+                        rectPaint.setStyle(Paint.Style.STROKE);
+                        rectPaint.setStrokeWidth(8);
 
                         float height = (float) faceData.getHeight();
                         float width = (float) faceData.getWidth();
@@ -234,14 +241,18 @@ public class MainActivity extends AppCompatActivity {
                         String gender = faceData.getGender();
                         long minAge = faceData.getMinAge();
 
-                        canvas.drawRect(left, top, right, bottom, paint);
+                        // Draw a rectangle around a face.
+                        canvas.drawRect(left, top, right, bottom, rectPaint);
 
-                        paint.setStyle(Paint.Style.FILL);
-                        canvas.drawRect(left-4, top-70, right+4, top, paint);
+                        // Draw a smaller rectangle for displaying person's gender and minimum age.
+                        rectPaint.setStyle(Paint.Style.FILL);
+                        canvas.drawRect(left-4, top-70, right+4, top, rectPaint);
 
+                        // Creates a Paint object, which will be used to draw gender and minimum age.
                         Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
                         textPaint.setColor(Color.BLACK);
                         textPaint.setTextSize(60F);
+                        // Used trial and error method to get the right position for the text.
                         canvas.drawText(gender, left+4, top-11, textPaint);
                         canvas.drawText(String.valueOf(minAge), right-72, top-11, textPaint);
                         imageView.setImageBitmap(drawBitmap);
@@ -250,6 +261,21 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Log.d(TAG, "0 faces detected");
             }
+        }
+
+        /**
+         * Returns a ByteArrayInputStream created from a bitmap,
+         * which will be used in the Visual Recognition request.
+         * @param bitmap from which the ByteArrayInputStream will be created.
+         * @return the ByteArrayInputStream created from the bitmap.
+         */
+        private ByteArrayInputStream createInputStreamFromBitmap(Bitmap bitmap) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream);
+            byte[] resultByteArray = byteArrayOutputStream.toByteArray();
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(resultByteArray);
+
+            return byteArrayInputStream;
         }
 
         private List<FaceData> extractFaceDataFromImages(List<ImageWithFaces> images) {

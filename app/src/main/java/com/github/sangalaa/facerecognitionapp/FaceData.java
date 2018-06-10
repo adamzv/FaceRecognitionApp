@@ -1,14 +1,24 @@
 package com.github.sangalaa.facerecognitionapp;
 
+/**
+ * {@link FaceData} represents a single face.
+ * Each FaceData object has
+ */
+
 public class FaceData {
+
     private double height;
+
     private double width;
+
     private double left;
+
     private double top;
 
     private String gender;
 
     private long minAge;
+
     private long maxAge;
 
     public FaceData(double height, double width, double left, double top, String gender, long minAge, long maxAge) {
@@ -19,19 +29,6 @@ public class FaceData {
         this.gender = gender;
         this.minAge = minAge;
         this.maxAge = maxAge;
-    }
-
-    @Override
-    public String toString() {
-        return "FaceData{" +
-                "height=" + height +
-                ", width=" + width +
-                ", left=" + left +
-                ", top=" + top +
-                ", gender='" + gender + '\'' +
-                ", minAge=" + minAge +
-                ", maxAge=" + maxAge +
-                '}';
     }
 
     public double getHeight() {
