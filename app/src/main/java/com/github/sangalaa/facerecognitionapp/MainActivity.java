@@ -1,9 +1,12 @@
 package com.github.sangalaa.facerecognitionapp;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.ibm.watson.developer_cloud.service.exception.ForbiddenException;
 import com.ibm.watson.developer_cloud.service.exception.NotFoundException;
@@ -135,7 +139,17 @@ public class MainActivity extends AppCompatActivity {
 
                 displayImage(result);
 
-                new DetectFacesTask().execute(result);
+                ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo networkInfo = manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                boolean isWifiConnected = networkInfo.isConnected();
+                networkInfo = manager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+                boolean isMobileConnected = networkInfo.isConnected();
+
+                if (isWifiConnected || isMobileConnected) {
+                    new DetectFacesTask().execute(result);
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.no_network_connection, Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
@@ -210,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
 
             // If there is at least one face in the picture.
             if (detectedFaces != null) {
-                Log.d(TAG, "Detected faces");
                 Log.d(TAG, detectedFaces.toString());
                 // The images List will contain only one image
                 List<ImageWithFaces> images = detectedFaces.getImages();
@@ -218,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                 // Extracts relevant date from the
                 List<FaceData> faceDataList = extractFaceDataFromImages(images);
 
-                if (bitmap != null) {
+                if (faceDataList.size() > 0) {
                     Bitmap drawBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
                     Canvas canvas = new Canvas(drawBitmap);
 
@@ -257,9 +270,9 @@ public class MainActivity extends AppCompatActivity {
                         canvas.drawText(String.valueOf(minAge), right-72, top-11, textPaint);
                         imageView.setImageBitmap(drawBitmap);
                     }
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.zero_faces_detected, Toast.LENGTH_LONG).show();
                 }
-            } else {
-                Log.d(TAG, "0 faces detected");
             }
         }
 

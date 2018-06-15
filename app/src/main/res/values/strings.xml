@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FaceRecognitionApp</string>
+    <string name="zero_faces_detected">0 faces detected.</string>
+    <string name="no_network_connection">No network connection.</string>
 </resources>
